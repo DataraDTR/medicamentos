@@ -295,7 +295,6 @@
       document.getElementById('errorMessage').innerHTML = 'Error: Firebase no disponible. Verifica tu conexión.';
       document.getElementById('errorMessage').style.display = 'block';
     } else {
-      console.log('Firebase cargado correctamente:', firebase);
     }
 
     const firebaseConfig = {
@@ -341,10 +340,8 @@
         const doc = await db.collection('medication_checks').doc(userId).get();
         if (doc.exists) {
           checked = doc.data().checks || {};
-          console.log('Data loaded from Firestore:', checked);
         } else {
           checked = {};
-          console.log('No data found in Firestore, initializing with empty checked object');
         }
         clearError();
       } catch (error) {
@@ -360,7 +357,6 @@
           checks: checked,
           lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         });
-        console.log('Data saved to Firestore:', checked);
         clearError();
       } catch (error) {
         console.error('Error saving data to Firestore:', error);
@@ -384,34 +380,32 @@
 
     function generateSchedule() {
       events = [];
-      console.log('Generating schedule with checked:', checked);
       const now = new Date();
       const today = new Date(2025, 9, 23); // 23-10-2025
       const isToday = now.toDateString() === today.toDateString();
-
+      
       meds.forEach(m => {
         let startOffset = (m.offset || 0) * 60 * 60 * 1000;
         let initialStart = new Date(START.getTime() + startOffset);
         let cur = new Date(initialStart.getTime());
         const end = new Date(START.getTime() + m.days * 24 * 60 * 60 * 1000);
-
+        
         // Solo para hoy: verificar si necesitamos reprogramar
         if (isToday && checked[`skipped_${m.id}`]) {
           const skippedTime = new Date(checked[`skipped_${m.id}`]);
           // Si se saltó una toma hoy, empezar desde la siguiente disponible
           cur = new Date(skippedTime.getTime());
           cur = addHours(cur, m.freq);
-          console.log(`Reprogramando ${m.name} desde ${formatDateTime(cur)}`);
         }
-
+        
         while (cur <= end) {
           events.push({ id: `${m.id}_${cur.getTime()}`, medId: m.id, medName: m.name, time: new Date(cur) });
           cur = addHours(cur, m.freq);
         }
       });
       events.sort((a, b) => a.time - b.time);
-      console.log('Generated events:', events);
     }
+
     function render() {
       const scheduleEl = document.getElementById('schedule');
       scheduleEl.innerHTML = '';
@@ -500,7 +494,6 @@
       } else {
         pb.style.display = 'none';
       }
-      console.log('Rendered schedule with total events:', total);
     }
 
     async function init() {
