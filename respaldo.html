@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calendario de Medicación - Checklist</title>
+  <style>
+    :root{
+      --bg:#f9fafb;
+      --card:#ffffff;
+      --accent:#2563eb;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
+    .wrap{max-width:900px;margin:30px auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px;color:#1e3a8a}
+    p.lead{margin:6px 0 0;color:var(--muted)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background .2s}
+    button:hover{background:#1d4ed8}
+    .grid{display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+    .schedule{max-height:68vh;overflow:auto;padding-right:6px}
+    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e5e7eb;background:#f9fafb}
+    .time{width:80px;font-weight:600;color:#1d4ed8}
+    .items{flex:1}
+    .item{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+    .medname{font-size:14px}
+    label.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+    input[type=checkbox]{width:18px;height:18px;border-radius:4px}
+    footer.small{color:var(--muted);font-size:13px;margin-top:12px}
+    .rightpanel{position:sticky;top:18px}
+    .meta{display:flex;flex-direction:column;gap:8px}
+    .stats{display:flex;gap:8px;flex-wrap:wrap}
+    .stat{background:#f3f4f6;padding:8px;border-radius:8px;min-width:100px;text-align:center}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .dayheader{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--accent)}
+    .smallmuted{color:var(--muted);font-size:13px}
+    .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
+    .pendingItem{font-size:13px;color:var(--warn)}
+    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Calendario de medicación — Checklist</h1>
+        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en tu navegador.</p>
+      </div>
+      <div class="controls">
+        <button id="toggleGroup">Agrupar por hora</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="schedule" id="schedule"></div>
+        <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente.</footer>
+      </section>
+
+      <aside class="rightpanel">
+        <div class="card meta">
+          <div class="smallmuted">Resumen</div>
+          <div class="stats">
+            <div class="stat">
+              <div id="totalEvents">0</div>
+              <div class="smallmuted">Tomas programadas</div>
+            </div>
+            <div class="stat">
+              <div id="doneCount">0</div>
+              <div class="smallmuted">Completadas</div>
+            </div>
+            <div class="stat">
+              <div id="pendingCount">0</div>
+              <div class="smallmuted">Pendientes</div>
+            </div>
+          </div>
+          <div id="pendingBox" class="pendingList" style="display:none">
+            <div class="smallmuted"><strong>Pendientes recientes:</strong></div>
+            <div id="pendingItems"></div>
+          </div>
+
+          <div style="margin-top:8px" class="smallmuted">Filtros</div>
+          <div class="filters">
+            <label><input type="checkbox" data-filter="gotas" checked /> Gotas</label>
+            <label><input type="checkbox" data-filter="loperamida" checked /> Loperamida</label>
+            <label><input type="checkbox" data-filter="viadil" checked /> Viadil</label>
+            <label><input type="checkbox" data-filter="paracetamol" checked /> Paracetamol</label>
+            <label><input type="checkbox" data-filter="ipratropio" checked /> Ipratropio</label>
+            <label><input type="checkbox" data-filter="azitromicina" checked /> Azitromicina</label>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const START = new Date(2025, 9, 23, 12, 0, 0);
+    const meds = [
+      { id: 'gotas', name: 'Gotas', freq: 4, days: 7 },
+      { id: 'loperamida', name: 'Loperamida 1 c/u', freq: 6, days: 4, offset: 4 },
+      { id: 'ipratropio', name: 'Ipratropio 2 puff', freq: 6, days: 4 },
+      { id: 'viadil', name: 'Viadil compuesto 35 gotas', freq: 8, days: 3 },
+      { id: 'paracetamol', name: 'Paracetamol 1 g', freq: 8, days: 4 },
+      { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6, offset: 4 }
+    ];
+
+    const STORAGE_KEY='med_calendar_checks_v2';
+
+    function addHours(d,h){return new Date(d.getTime()+h*60*60*1000)}
+    function formatDateTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getDate())}-${p(dt.getMonth()+1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`}
+    function formatTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getHours())}:${p(dt.getMinutes())}`}
+
+    let checked=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+    let events=[];
+
+    function generateSchedule(){
+      events=[];
+      meds.forEach(m=>{
+        let startOffset=(m.offset||0)*60*60*1000;
+        let lastTaken=checked[`last_${m.id}`]?new Date(checked[`last_${m.id}`]):new Date(START.getTime()+startOffset);
+        let cur=new Date(lastTaken.getTime());
+        const end=new Date(START.getTime()+m.days*24*60*60*1000);
+        while(cur<=end){
+          events.push({id:`${m.id}_${cur.getTime()}`,medId:m.id,medName:m.name,time:new Date(cur)});
+          cur=addHours(cur,m.freq);
+        }
+      });
+      events.sort((a,b)=>a.time-b.time);
+    }
+
+    function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(checked))}
+
+    function render(){
+      const scheduleEl=document.getElementById('schedule');
+      scheduleEl.innerHTML='';
+      const now=new Date();
+      const byDay={};
+      events.forEach(e=>{const k=e.time.toISOString().slice(0,10);if(!byDay[k])byDay[k]=[];byDay[k].push(e)});
+
+      let total=0,done=0;const pendingNow=[];
+      Object.keys(byDay).sort().forEach(day=>{
+        const header=document.createElement('div');header.className='dayheader';
+        const p=day.split('-');header.textContent=`${p[2]}-${p[1]}-${p[0]}`;scheduleEl.appendChild(header);
+        const byTime={};byDay[day].forEach(e=>{const t=formatTime(e.time);if(!byTime[t])byTime[t]=[];byTime[t].push(e)});
+        Object.keys(byTime).sort().forEach(t=>{
+          const slot=document.createElement('div');slot.className='slot';
+          const timeEl=document.createElement('div');timeEl.className='time';timeEl.textContent=t;
+          const itemsEl=document.createElement('div');itemsEl.className='items';
+          byTime[t].forEach(ev=>{
+            total++;const chk=!!checked[ev.id];if(chk)done++;if(!chk && ev.time<now){pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`)}
+            const div=document.createElement('div');div.className='item';
+            const label=document.createElement('label');label.className='check';
+            const cb=document.createElement('input');cb.type='checkbox';cb.checked=chk;
+            cb.addEventListener('change',()=>{
+              checked[ev.id]=cb.checked;
+              if(cb.checked){checked[`last_${ev.medId}`]=ev.time.toISOString();generateSchedule();}
+              persist();render();
+            });
+            const name=document.createElement('div');name.className='medname';name.textContent=ev.medName;
+            label.appendChild(cb);label.appendChild(name);div.appendChild(label);itemsEl.appendChild(div);
+          });
+          slot.appendChild(timeEl);slot.appendChild(itemsEl);scheduleEl.appendChild(slot);
+        });
+      });
+      document.getElementById('totalEvents').textContent=total;
+      document.getElementById('doneCount').textContent=done;
+      document.getElementById('pendingCount').textContent=total-done;
+
+      const pb=document.getElementById('pendingBox');const pi=document.getElementById('pendingItems');
+      if(pendingNow.length>0){pb.style.display='block';pi.innerHTML=pendingNow.map(p=>`<div class='pendingItem'>${p}</div>`).join('');}
+      else{pb.style.display='none';}
+    }
+
+    generateSchedule();
+    render();
+  </script>
+</body>
+</html>

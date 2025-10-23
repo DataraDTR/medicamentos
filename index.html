@@ -12,6 +12,7 @@
       --muted:#6b7280;
       --ok:#10b981;
       --warn:#f59e0b;
+      --error:#ef4444;
     }
     *{box-sizing:border-box}
     body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
@@ -42,6 +43,7 @@
     .smallmuted{color:var(--muted);font-size:13px}
     .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
     .pendingItem{font-size:13px;color:var(--warn)}
+    .error-message{background:#fee2e2;padding:10px;border-radius:8px;border:1px solid var(--error);color:var(--error);font-size:14px;margin-bottom:10px;display:none}
     @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
   </style>
 </head>
@@ -59,6 +61,7 @@
 
     <div class="grid">
       <section class="card">
+        <div class="error-message" id="errorMessage"></div>
         <div class="schedule" id="schedule"></div>
         <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente en Firebase.</footer>
       </section>
@@ -115,7 +118,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const userId = 'default_user'; // Replace with actual user ID if authentication is implemented
-    const STORAGE_KEY = 'med_calendar_checks_v2';
 
     const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
@@ -130,16 +132,33 @@
     let checked = {};
     let events = [];
 
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+
+    function clearError() {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = '';
+      errorEl.style.display = 'none';
+    }
+
     async function loadCheckedData() {
       try {
         const doc = await db.collection('medication_checks').doc(userId).get();
         if (doc.exists) {
           checked = doc.data().checks || {};
+          console.log('Data loaded from Firestore:', checked);
         } else {
           checked = {};
+          console.log('No data found in Firestore, initializing with empty checked object');
         }
+        clearError();
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
+        showError('Error al cargar los datos. Por favor, intenta de nuevo.');
+        throw error; // Rethrow to prevent further execution
       }
     }
 
@@ -149,8 +168,11 @@
           checks: checked,
           lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         });
+        console.log('Data saved to Firestore:', checked);
+        clearError();
       } catch (error) {
         console.error('Error saving data to Firestore:', error);
+        showError('Error al guardar los datos. Por favor, intenta de nuevo.');
       }
     }
 
@@ -170,6 +192,7 @@
 
     function generateSchedule() {
       events = [];
+      console.log('Generating schedule with checked:', checked);
       meds.forEach(m => {
         let startOffset = (m.offset || 0) * 60 * 60 * 1000;
         let lastTaken = checked[`last_${m.id}`] ? new Date(checked[`last_${m.id}`]) : new Date(START.getTime() + startOffset);
@@ -181,11 +204,17 @@
         }
       });
       events.sort((a, b) => a.time - b.time);
+      console.log('Generated events:', events);
     }
 
     function render() {
       const scheduleEl = document.getElementById('schedule');
       scheduleEl.innerHTML = '';
+      if (events.length === 0) {
+        scheduleEl.innerHTML = '<div>No hay tomas programadas.</div>';
+        return;
+      }
+
       const now = new Date();
       const byDay = {};
       events.forEach(e => {
@@ -264,13 +293,17 @@
       } else {
         pb.style.display = 'none';
       }
+      console.log('Rendered schedule with total events:', total);
     }
 
-    // Initialize and load data
     async function init() {
-      await loadCheckedData();
-      generateSchedule();
-      render();
+      try {
+        await loadCheckedData();
+        generateSchedule();
+        render();
+      } catch (error) {
+        console.error('Initialization failed:', error);
+      }
     }
 
     init();
