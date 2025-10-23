@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -12,54 +13,231 @@
   <link rel="android-chrome-512x512" href="src/android-chrome-512x512.png" />
   <link rel="manifest" href="src/site.webmanifest" />
   <style>
-    :root{
-      --bg:#f9fafb;
-      --card:#ffffff;
-      --accent:#2563eb;
-      --muted:#6b7280;
-      --ok:#10b981;
-      --warn:#f59e0b;
-      --error:#ef4444;
+    :root {
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --accent: #2563eb;
+      --muted: #6b7280;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --error: #ef4444;
     }
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
-    .wrap{max-width:900px;margin:30px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    h1{margin:0;font-size:20px;color:#1e3a8a}
-    p.lead{margin:6px 0 0;color:var(--muted)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background .2s}
-    button:hover{background:#1d4ed8}
-    .grid{display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:18px}
-    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
-    .schedule{max-height:68vh;overflow:auto;padding-right:6px}
-    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e5e7eb;background:#f9fafb}
-    .time{width:80px;font-weight:600;color:#1d4ed8}
-    .items{flex:1}
-    .item{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-    .medname{font-size:14px}
-    label.check{display:flex;gap:8px;align-items:center;cursor:pointer}
-    input[type=checkbox]{width:18px;height:18px;border-radius:4px}
-    footer.small{color:var(--muted);font-size:13px;margin-top:12px}
-    .rightpanel{position:sticky;top:18px}
-    .meta{display:flex;flex-direction:column;gap:8px}
-    .stats{display:flex;gap:8px;flex-wrap:wrap}
-    .stat{background:#f3f4f6;padding:8px;border-radius:8px;min-width:100px;text-align:center}
-    .filters{display:flex;gap:8px;flex-wrap:wrap}
-    .dayheader{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--accent)}
-    .smallmuted{color:var(--muted);font-size:13px}
-    .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
-    .pendingItem{font-size:13px;color:var(--warn)}
-    .error-message{background:#fee2e2;padding:10px;border-radius:8px;border:1px solid var(--error);color:var(--error);font-size:14px;margin-bottom:10px;display:none}
-    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      margin: 0;
+      background: var(--bg);
+      color: #111827
+    }
+
+    .wrap {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px
+    }
+
+    header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #1e3a8a
+    }
+
+    p.lead {
+      margin: 6px 0 0;
+      color: var(--muted)
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .2s
+    }
+
+    button:hover {
+      background: #1d4ed8
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 18px;
+      margin-top: 18px
+    }
+
+    .card {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08)
+    }
+
+    .schedule {
+      max-height: 68vh;
+      overflow: auto;
+      padding-right: 6px
+    }
+
+    .slot {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb
+    }
+
+    .time {
+      width: 80px;
+      font-weight: 600;
+      color: #1d4ed8
+    }
+
+    .items {
+      flex: 1
+    }
+
+    .item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px
+    }
+
+    .medname {
+      font-size: 14px
+    }
+
+    label.check {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer
+    }
+
+    input[type=checkbox] {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px
+    }
+
+    footer.small {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px
+    }
+
+    .rightpanel {
+      position: sticky;
+      top: 18px
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .stat {
+      background: #f3f4f6;
+      padding: 8px;
+      border-radius: 8px;
+      min-width: 100px;
+      text-align: center
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .dayheader {
+      font-weight: 700;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      color: var(--accent)
+    }
+
+    .smallmuted {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .pendingList {
+      margin-top: 10px;
+      background: #fff7ed;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #fed7aa
+    }
+
+    .pendingItem {
+      font-size: 13px;
+      color: var(--warn)
+    }
+
+    .error-message {
+      background: #fee2e2;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--error);
+      color: var(--error);
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: none
+    }
+
+    @media (max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr;
+        margin: 0
+      }
+
+      .rightpanel {
+        position: static
+      }
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <header>
       <div>
         <h1>Calendario de medicación — Checklist</h1>
-        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en Firebase.</p>
+        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los
+          cambios se guardan en Firebase.</p>
       </div>
       <div class="controls">
         <button id="toggleGroup">Agrupar por hora</button>
@@ -207,11 +385,25 @@
     function generateSchedule() {
       events = [];
       console.log('Generating schedule with checked:', checked);
+      const now = new Date();
+      const today = new Date(2025, 9, 23); // 23-10-2025
+      const isToday = now.toDateString() === today.toDateString();
+
       meds.forEach(m => {
         let startOffset = (m.offset || 0) * 60 * 60 * 1000;
-        let lastTaken = checked[`last_${m.id}`] ? new Date(checked[`last_${m.id}`]) : new Date(START.getTime() + startOffset);
-        let cur = new Date(lastTaken.getTime());
+        let initialStart = new Date(START.getTime() + startOffset);
+        let cur = new Date(initialStart.getTime());
         const end = new Date(START.getTime() + m.days * 24 * 60 * 60 * 1000);
+
+        // Solo para hoy: verificar si necesitamos reprogramar
+        if (isToday && checked[`skipped_${m.id}`]) {
+          const skippedTime = new Date(checked[`skipped_${m.id}`]);
+          // Si se saltó una toma hoy, empezar desde la siguiente disponible
+          cur = new Date(skippedTime.getTime());
+          cur = addHours(cur, m.freq);
+          console.log(`Reprogramando ${m.name} desde ${formatDateTime(cur)}`);
+        }
+
         while (cur <= end) {
           events.push({ id: `${m.id}_${cur.getTime()}`, medId: m.id, medName: m.name, time: new Date(cur) });
           cur = addHours(cur, m.freq);
@@ -220,7 +412,6 @@
       events.sort((a, b) => a.time - b.time);
       console.log('Generated events:', events);
     }
-
     function render() {
       const scheduleEl = document.getElementById('schedule');
       scheduleEl.innerHTML = '';
@@ -325,4 +516,5 @@
     init();
   </script>
 </body>
+
 </html>
