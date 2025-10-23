@@ -59,8 +59,6 @@
     #addTemp{padding:6px 10px;font-size:13px}
     #tempInput{padding:5px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
     .meta > div[style*="margin-top:8px"] .smallmuted{font-weight:600}
-
-    /* Ajustes específicos para pantallas pequeñas como Samsung S24+ (~430px de ancho físico, ~450-500px CSS) */
     @media (max-width: 550px) {
       .wrap{margin:12px auto;padding:12px}
       header{gap:8px;flex-direction:column;align-items:stretch}
@@ -91,8 +89,6 @@
       .card{padding:10px}
       footer.small{font-size:11px;margin-top:8px}
     }
-
-    /* Mantener layout side-by-side hasta el mínimo absoluto; solo colapsar si es estrictamente necesario (por debajo de ~400px, pero evitamos para S24+) */
     @media (max-width: 400px) {
       .grid{grid-template-columns:1fr}
       .rightpanel{position:static}
@@ -110,14 +106,12 @@
         <button id="toggleGroup">Agrupar por hora</button>
       </div>
     </header>
-
     <div class="grid">
       <section class="card">
         <div class="error-message" id="errorMessage"></div>
         <div class="schedule" id="schedule"></div>
         <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente en Firebase.</footer>
       </section>
-
       <aside class="rightpanel">
         <div class="card meta">
           <div class="smallmuted">Resumen</div>
@@ -139,7 +133,6 @@
             <div class="smallmuted"><strong>Pendientes recientes:</strong></div>
             <div id="pendingItems"></div>
           </div>
-
           <div style="margin-top:8px" class="smallmuted">Filtros</div>
           <div class="filters">
             <label><input type="checkbox" data-filter="gotas" checked /> Gotas</label>
@@ -150,7 +143,6 @@
             <label><input type="checkbox" data-filter="azitromicina" checked /> Azitromicina</label>
           </div>
         </div>
-
         <div class="card meta" style="margin-top:14px">
           <div class="smallmuted"><strong>Registro de Temperatura</strong></div>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
@@ -165,7 +157,6 @@
       </aside>
     </div>
   </div>
-
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
@@ -173,7 +164,6 @@
       document.getElementById('errorMessage').innerHTML = 'Error: Firebase no disponible. Verifica tu conexión.';
       document.getElementById('errorMessage').style.display = 'block';
     }
-
     const firebaseConfig = {
       apiKey: "AIzaSyC5nlgiGkmViycXzgo3wqbtYnU6-k4sMHc",
       authDomain: "medicamentos-a6cc5.firebaseapp.com",
@@ -186,7 +176,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const userId = 'default_user';
-
     const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
       { id: 'gotas', name: 'Gotas', freq: 4, days: 7 },
@@ -196,23 +185,19 @@
       { id: 'paracetamol', name: 'Paracetamol 1 g', freq: 8, days: 4 },
       { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6, offset: 4 }
     ];
-
     let checked = {};
     let events = [];
     let temperatures = [];
-
     function showError(message) {
       const errorEl = document.getElementById('errorMessage');
       errorEl.textContent = message;
       errorEl.style.display = 'block';
     }
-
     function clearError() {
       const errorEl = document.getElementById('errorMessage');
       errorEl.textContent = '';
       errorEl.style.display = 'none';
     }
-
     async function loadCheckedData() {
       try {
         const doc = await db.collection('medication_checks').doc(userId).get();
@@ -230,7 +215,6 @@
         throw error;
       }
     }
-
     async function persist() {
       try {
         await db.collection('medication_checks').doc(userId).set({
@@ -243,39 +227,32 @@
         showError('Error al guardar los datos. Por favor, intenta de nuevo.');
       }
     }
-
     function addHours(d, h) {
       return new Date(d.getTime() + h * 60 * 60 * 1000);
     }
-
     function formatDateTime(dt) {
       const p = n => n.toString().padStart(2, '0');
       return `${p(dt.getDate())}-${p(dt.getMonth() + 1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`;
     }
-
     function formatTime(dt) {
       const p = n => n.toString().padStart(2, '0');
       return `${p(dt.getHours())}:${p(dt.getMinutes())}`;
     }
-
     function generateSchedule() {
       events = [];
       const now = new Date();
       const today = new Date(2025, 9, 23);
       const isToday = now.toDateString() === today.toDateString();
-      
       meds.forEach(m => {
         let startOffset = (m.offset || 0) * 60 * 60 * 1000;
         let initialStart = new Date(START.getTime() + startOffset);
         let cur = new Date(initialStart.getTime());
         const end = new Date(START.getTime() + m.days * 24 * 60 * 60 * 1000);
-        
         if (isToday && checked[`skipped_${m.id}`]) {
           const skippedTime = new Date(checked[`skipped_${m.id}`]);
           cur = new Date(skippedTime.getTime());
           cur = addHours(cur, m.freq);
         }
-        
         while (cur <= end) {
           events.push({ id: `${m.id}_${cur.getTime()}`, medId: m.id, medName: m.name, time: new Date(cur) });
           cur = addHours(cur, m.freq);
@@ -283,7 +260,6 @@
       });
       events.sort((a, b) => a.time - b.time);
     }
-
     function render() {
       const scheduleEl = document.getElementById('schedule');
       scheduleEl.innerHTML = '';
@@ -291,7 +267,6 @@
         scheduleEl.innerHTML = '<div>No hay tomas programadas.</div>';
         return;
       }
-
       const now = new Date();
       const byDay = {};
       events.forEach(e => {
@@ -299,7 +274,6 @@
         if (!byDay[k]) byDay[k] = [];
         byDay[k].push(e);
       });
-
       let total = 0, done = 0;
       const pendingNow = [];
       Object.keys(byDay).sort().forEach(day => {
@@ -357,7 +331,6 @@
       document.getElementById('totalEvents').textContent = total;
       document.getElementById('doneCount').textContent = done;
       document.getElementById('pendingCount').textContent = total - done;
-
       const pb = document.getElementById('pendingBox');
       const pi = document.getElementById('pendingItems');
       if (pendingNow.length > 0) {
@@ -367,16 +340,13 @@
         pb.style.display = 'none';
       }
     }
-
     function renderTemperatures() {
       const tempList = document.getElementById('tempList');
       if (temperatures.length === 0) {
         tempList.innerHTML = '<div class="smallmuted" style="padding:8px">No hay registros aún</div>';
         return;
       }
-      
       const sorted = [...temperatures].sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
-      
       tempList.innerHTML = sorted.map((t, idx) => {
         const dt = new Date(t.datetime);
         const realIdx = temperatures.findIndex(temp => temp.datetime === t.datetime && temp.value === t.value);
@@ -391,70 +361,55 @@
         `;
       }).join('');
     }
-
     window.deleteTemp = async function(index) {
       temperatures.splice(index, 1);
       await persist();
       renderTemperatures();
     }
-
     async function addTemperature() {
       const input = document.getElementById('tempInput');
       const value = parseFloat(input.value);
-      
       if (isNaN(value) || value < 30 || value > 45) {
         alert('Por favor ingresa una temperatura válida (30-45°C)');
         return;
       }
-      
       const now = new Date();
       temperatures.push({
         datetime: now.toISOString(),
         value: value
       });
-      
       input.value = '';
       await persist();
       renderTemperatures();
     }
-
     function checkAndReschedule() {
       const now = new Date();
       const today = new Date(2025, 9, 23);
       const isToday = now.toDateString() === today.toDateString();
-      
       if (!isToday) return;
-      
       let needsUpdate = false;
-      
       events.forEach(ev => {
         const timeDiff = now - ev.time;
         const oneHour = 60 * 60 * 1000;
-        
         if (ev.medId === 'gotas') return;
-        
         if (timeDiff > oneHour && !checked[ev.id] && !checked[`skipped_${ev.medId}`]) {
           checked[`skipped_${ev.medId}`] = ev.time.toISOString();
           needsUpdate = true;
         }
       });
-      
       if (needsUpdate) {
         persist();
         generateSchedule();
         render();
       }
     }
-
     async function init() {
       try {
         await loadCheckedData();
         generateSchedule();
         render();
         renderTemperatures();
-        
         setInterval(checkAndReschedule, 60000);
-        
         document.getElementById('addTemp').addEventListener('click', addTemperature);
         document.getElementById('tempInput').addEventListener('keypress', (e) => {
           if (e.key === 'Enter') addTemperature();
@@ -463,8 +418,20 @@
         console.error('Initialization failed:', error);
       }
     }
-
     init();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('Service Worker registrado:', registration);
+          })
+          .catch(error => {
+            console.error('Error al registrar Service Worker:', error);
+          });
+      });
+    }
   </script>
 </body>
 </html>
