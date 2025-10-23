@@ -22,39 +22,81 @@
     }
     *{box-sizing:border-box}
     body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
-    .wrap{max-width:900px;margin:30px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    h1{margin:0;font-size:20px;color:#1e3a8a}
-    p.lead{margin:6px 0 0;color:var(--muted)}
-    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background .2s}
+    .wrap{max-width:900px;margin:20px auto;padding:16px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:18px;color:#1e3a8a}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:14px}
+    .controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+    button{background:var(--accent);color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background .2s;font-size:14px}
     button:hover{background:#1d4ed8}
-    .grid{display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:18px}
-    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
-    .schedule{max-height:68vh;overflow:auto;padding-right:6px}
-    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e5e7eb;background:#f9fafb}
-    .time{width:80px;font-weight:600;color:#1d4ed8}
+    .grid{display:grid;grid-template-columns:1fr 260px;gap:16px;margin-top:16px}
+    .card{background:var(--card);padding:12px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+    .schedule{max-height:60vh;overflow:auto;padding-right:4px;font-size:14px}
+    .slot{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:8px;margin-bottom:6px;border:1px solid #e5e7eb;background:#f9fafb}
+    .time{width:70px;font-weight:600;color:#1d4ed8;font-size:13px}
     .items{flex:1}
-    .item{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-    .medname{font-size:14px}
-    label.check{display:flex;gap:8px;align-items:center;cursor:pointer}
-    input[type=checkbox]{width:18px;height:18px;border-radius:4px}
-    footer.small{color:var(--muted);font-size:13px;margin-top:12px}
-    .rightpanel{position:sticky;top:18px}
-    .meta{display:flex;flex-direction:column;gap:8px}
-    .stats{display:flex;gap:8px;flex-wrap:wrap}
-    .stat{background:#f3f4f6;padding:8px;border-radius:8px;min-width:100px;text-align:center}
-    .filters{display:flex;gap:8px;flex-wrap:wrap}
-    .dayheader{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--accent)}
-    .smallmuted{color:var(--muted);font-size:13px}
-    .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
-    .pendingItem{font-size:13px;color:var(--warn)}
-    .error-message{background:#fee2e2;padding:10px;border-radius:8px;border:1px solid var(--error);color:var(--error);font-size:14px;margin-bottom:10px;display:none}
-    .tempEntry{background:#f9fafb;padding:8px;border-radius:6px;margin-bottom:6px;font-size:13px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+    .item{display:flex;gap:6px;align-items:center;margin-bottom:4px}
+    .medname{font-size:13px}
+    label.check{display:flex;gap:6px;align-items:center;cursor:pointer}
+    input[type=checkbox]{width:16px;height:16px;border-radius:4px}
+    footer.small{color:var(--muted);font-size:12px;margin-top:10px}
+    .rightpanel{position:sticky;top:16px}
+    .meta{display:flex;flex-direction:column;gap:6px;font-size:13px}
+    .stats{display:flex;gap:6px;flex-wrap:wrap}
+    .stat{background:#f3f4f6;padding:6px;border-radius:8px;min-width:80px;text-align:center;font-size:13px}
+    .stat > div:first-child{font-weight:600}
+    .filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .filters label{font-size:13px;display:flex;gap:4px;align-items:center}
+    .dayheader{font-weight:700;margin-top:10px;margin-bottom:4px;color:var(--accent);font-size:14px}
+    .smallmuted{color:var(--muted);font-size:12px}
+    .pendingList{margin-top:8px;background:#fff7ed;padding:8px;border-radius:8px;border:1px solid #fed7aa;font-size:13px}
+    .pendingItem{font-size:12px;color:var(--warn);margin-bottom:4px}
+    .error-message{background:#fee2e2;padding:8px;border-radius:8px;border:1px solid var(--error);color:var(--error);font-size:13px;margin-bottom:8px;display:none}
+    .tempEntry{background:#f9fafb;padding:6px;border-radius:6px;margin-bottom:4px;font-size:12px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
     .tempEntry .tempValue{font-weight:600;color:#1d4ed8}
-    .tempEntry .deleteBtn{background:#ef4444;color:white;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px}
+    .tempEntry .deleteBtn{background:#ef4444;color:white;border:none;padding:1px 6px;border-radius:4px;cursor:pointer;font-size:10px}
     .tempEntry .deleteBtn:hover{background:#dc2626}
-    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
+    #addTemp{padding:6px 10px;font-size:13px}
+    #tempInput{padding:5px;border:1px solid #d1d5db;border-radius:6px;font-size:13px}
+    .meta > div[style*="margin-top:8px"] .smallmuted{font-weight:600}
+
+    /* Ajustes específicos para pantallas pequeñas como Samsung S24+ (~430px de ancho físico, ~450-500px CSS) */
+    @media (max-width: 550px) {
+      .wrap{margin:12px auto;padding:12px}
+      header{gap:8px;flex-direction:column;align-items:stretch}
+      h1{font-size:17px}
+      p.lead{font-size:13px}
+      .controls{justify-content:flex-start;margin-top:8px}
+      button{padding:5px 8px;font-size:13px}
+      .grid{grid-template-columns:1fr 240px;gap:12px}
+      .schedule{max-height:55vh;padding-right:2px;font-size:13px}
+      .slot{gap:8px;padding:6px;margin-bottom:4px}
+      .time{width:60px;font-size:12px}
+      .medname{font-size:12px}
+      input[type=checkbox]{width:15px;height:15px}
+      .item{gap:5px;margin-bottom:3px}
+      .dayheader{margin-top:8px;margin-bottom:3px;font-size:13px}
+      .rightpanel{top:12px}
+      .meta{gap:5px}
+      .stats{gap:5px}
+      .stat{min-width:70px;padding:5px;font-size:12px}
+      .filters{gap:5px}
+      .filters label{font-size:12px}
+      .pendingList{padding:6px;margin-top:6px;font-size:12px}
+      .pendingItem{font-size:11px;margin-bottom:3px}
+      .error-message{padding:6px;font-size:12px;margin-bottom:6px}
+      .tempEntry{padding:5px;margin-bottom:3px;font-size:11px}
+      .tempEntry .deleteBtn{padding:1px 5px;font-size:9px}
+      #tempList{max-height:150px}
+      .card{padding:10px}
+      footer.small{font-size:11px;margin-top:8px}
+    }
+
+    /* Mantener layout side-by-side hasta el mínimo absoluto; solo colapsar si es estrictamente necesario (por debajo de ~400px, pero evitamos para S24+) */
+    @media (max-width: 400px) {
+      .grid{grid-template-columns:1fr}
+      .rightpanel{position:static}
+    }
   </style>
 </head>
 <body>
