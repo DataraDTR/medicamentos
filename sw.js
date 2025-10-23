@@ -1,4 +1,4 @@
-const CACHE_NAME = 'medicacion-checklist-v1';
+const CACHE_NAME = 'calendario-amorcito-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -1,7 +1,7 @@
 {
-  "name": "Calendario de Medicación",
-  "short_name": "Medicación",
-  "description": "Una aplicación para gestionar y marcar tus tomas de medicamentos diarias",
+  "name": "Calendario Amorcito",
+  "short_name": "Amorcito",
+  "description": "Una aplicación para gestionar tus medicamentos, amorcito ♥",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#f9fafb",
