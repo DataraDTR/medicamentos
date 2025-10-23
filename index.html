@@ -50,7 +50,7 @@
     <header>
       <div>
         <h1>Calendario de medicación — Checklist</h1>
-        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en tu navegador.</p>
+        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en Firebase.</p>
       </div>
       <div class="controls">
         <button id="toggleGroup">Agrupar por hora</button>
@@ -60,7 +60,7 @@
     <div class="grid">
       <section class="card">
         <div class="schedule" id="schedule"></div>
-        <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente.</footer>
+        <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente en Firebase.</footer>
       </section>
 
       <aside class="rightpanel">
@@ -99,7 +99,24 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"></script>
   <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC5nlgiGkmViycXzgo3wqbtYnU6-k4sMHc",
+      authDomain: "medicamentos-a6cc5.firebaseapp.com",
+      projectId: "medicamentos-a6cc5",
+      storageBucket: "medicamentos-a6cc5.firebasestorage.app",
+      messagingSenderId: "277925766458",
+      appId: "1:277925766458:web:ac77a9b51e0541a5c39c03",
+      measurementId: "G-7TNMZ1V64C"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const userId = 'default_user'; // Replace with actual user ID if authentication is implemented
+    const STORAGE_KEY = 'med_calendar_checks_v2';
+
     const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
       { id: 'gotas', name: 'Gotas', freq: 4, days: 7 },
@@ -110,75 +127,153 @@
       { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6, offset: 4 }
     ];
 
-    const STORAGE_KEY='med_calendar_checks_v2';
+    let checked = {};
+    let events = [];
 
-    function addHours(d,h){return new Date(d.getTime()+h*60*60*1000)}
-    function formatDateTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getDate())}-${p(dt.getMonth()+1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`}
-    function formatTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getHours())}:${p(dt.getMinutes())}`}
+    async function loadCheckedData() {
+      try {
+        const doc = await db.collection('medication_checks').doc(userId).get();
+        if (doc.exists) {
+          checked = doc.data().checks || {};
+        } else {
+          checked = {};
+        }
+      } catch (error) {
+        console.error('Error loading data from Firestore:', error);
+      }
+    }
 
-    let checked=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-    let events=[];
+    async function persist() {
+      try {
+        await db.collection('medication_checks').doc(userId).set({
+          checks: checked,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error saving data to Firestore:', error);
+      }
+    }
 
-    function generateSchedule(){
-      events=[];
-      meds.forEach(m=>{
-        let startOffset=(m.offset||0)*60*60*1000;
-        let lastTaken=checked[`last_${m.id}`]?new Date(checked[`last_${m.id}`]):new Date(START.getTime()+startOffset);
-        let cur=new Date(lastTaken.getTime());
-        const end=new Date(START.getTime()+m.days*24*60*60*1000);
-        while(cur<=end){
-          events.push({id:`${m.id}_${cur.getTime()}`,medId:m.id,medName:m.name,time:new Date(cur)});
-          cur=addHours(cur,m.freq);
+    function addHours(d, h) {
+      return new Date(d.getTime() + h * 60 * 60 * 1000);
+    }
+
+    function formatDateTime(dt) {
+      const p = n => n.toString().padStart(2, '0');
+      return `${p(dt.getDate())}-${p(dt.getMonth() + 1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`;
+    }
+
+    function formatTime(dt) {
+      const p = n => n.toString().padStart(2, '0');
+      return `${p(dt.getHours())}:${p(dt.getMinutes())}`;
+    }
+
+    function generateSchedule() {
+      events = [];
+      meds.forEach(m => {
+        let startOffset = (m.offset || 0) * 60 * 60 * 1000;
+        let lastTaken = checked[`last_${m.id}`] ? new Date(checked[`last_${m.id}`]) : new Date(START.getTime() + startOffset);
+        let cur = new Date(lastTaken.getTime());
+        const end = new Date(START.getTime() + m.days * 24 * 60 * 60 * 1000);
+        while (cur <= end) {
+          events.push({ id: `${m.id}_${cur.getTime()}`, medId: m.id, medName: m.name, time: new Date(cur) });
+          cur = addHours(cur, m.freq);
         }
       });
-      events.sort((a,b)=>a.time-b.time);
+      events.sort((a, b) => a.time - b.time);
     }
 
-    function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(checked))}
+    function render() {
+      const scheduleEl = document.getElementById('schedule');
+      scheduleEl.innerHTML = '';
+      const now = new Date();
+      const byDay = {};
+      events.forEach(e => {
+        const k = e.time.toISOString().slice(0, 10);
+        if (!byDay[k]) byDay[k] = [];
+        byDay[k].push(e);
+      });
 
-    function render(){
-      const scheduleEl=document.getElementById('schedule');
-      scheduleEl.innerHTML='';
-      const now=new Date();
-      const byDay={};
-      events.forEach(e=>{const k=e.time.toISOString().slice(0,10);if(!byDay[k])byDay[k]=[];byDay[k].push(e)});
-
-      let total=0,done=0;const pendingNow=[];
-      Object.keys(byDay).sort().forEach(day=>{
-        const header=document.createElement('div');header.className='dayheader';
-        const p=day.split('-');header.textContent=`${p[2]}-${p[1]}-${p[0]}`;scheduleEl.appendChild(header);
-        const byTime={};byDay[day].forEach(e=>{const t=formatTime(e.time);if(!byTime[t])byTime[t]=[];byTime[t].push(e)});
-        Object.keys(byTime).sort().forEach(t=>{
-          const slot=document.createElement('div');slot.className='slot';
-          const timeEl=document.createElement('div');timeEl.className='time';timeEl.textContent=t;
-          const itemsEl=document.createElement('div');itemsEl.className='items';
-          byTime[t].forEach(ev=>{
-            total++;const chk=!!checked[ev.id];if(chk)done++;if(!chk && ev.time<now){pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`)}
-            const div=document.createElement('div');div.className='item';
-            const label=document.createElement('label');label.className='check';
-            const cb=document.createElement('input');cb.type='checkbox';cb.checked=chk;
-            cb.addEventListener('change',()=>{
-              checked[ev.id]=cb.checked;
-              if(cb.checked){checked[`last_${ev.medId}`]=ev.time.toISOString();generateSchedule();}
-              persist();render();
+      let total = 0, done = 0;
+      const pendingNow = [];
+      Object.keys(byDay).sort().forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'dayheader';
+        const p = day.split('-');
+        header.textContent = `${p[2]}-${p[1]}-${p[0]}`;
+        scheduleEl.appendChild(header);
+        const byTime = {};
+        byDay[day].forEach(e => {
+          const t = formatTime(e.time);
+          if (!byTime[t]) byTime[t] = [];
+          byTime[t].push(e);
+        });
+        Object.keys(byTime).sort().forEach(t => {
+          const slot = document.createElement('div');
+          slot.className = 'slot';
+          const timeEl = document.createElement('div');
+          timeEl.className = 'time';
+          timeEl.textContent = t;
+          const itemsEl = document.createElement('div');
+          itemsEl.className = 'items';
+          byTime[t].forEach(ev => {
+            total++;
+            const chk = !!checked[ev.id];
+            if (chk) done++;
+            if (!chk && ev.time < now) {
+              pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`);
+            }
+            const div = document.createElement('div');
+            div.className = 'item';
+            const label = document.createElement('label');
+            label.className = 'check';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.checked = chk;
+            cb.addEventListener('change', async () => {
+              checked[ev.id] = cb.checked;
+              if (cb.checked) {
+                checked[`last_${ev.medId}`] = ev.time.toISOString();
+                generateSchedule();
+              }
+              await persist();
+              render();
             });
-            const name=document.createElement('div');name.className='medname';name.textContent=ev.medName;
-            label.appendChild(cb);label.appendChild(name);div.appendChild(label);itemsEl.appendChild(div);
+            const name = document.createElement('div');
+            name.className = 'medname';
+            name.textContent = ev.medName;
+            label.appendChild(cb);
+            label.appendChild(name);
+            div.appendChild(label);
+            itemsEl.appendChild(div);
           });
-          slot.appendChild(timeEl);slot.appendChild(itemsEl);scheduleEl.appendChild(slot);
+          slot.appendChild(timeEl);
+          slot.appendChild(itemsEl);
+          scheduleEl.appendChild(slot);
         });
       });
-      document.getElementById('totalEvents').textContent=total;
-      document.getElementById('doneCount').textContent=done;
-      document.getElementById('pendingCount').textContent=total-done;
+      document.getElementById('totalEvents').textContent = total;
+      document.getElementById('doneCount').textContent = done;
+      document.getElementById('pendingCount').textContent = total - done;
 
-      const pb=document.getElementById('pendingBox');const pi=document.getElementById('pendingItems');
-      if(pendingNow.length>0){pb.style.display='block';pi.innerHTML=pendingNow.map(p=>`<div class='pendingItem'>${p}</div>`).join('');}
-      else{pb.style.display='none';}
+      const pb = document.getElementById('pendingBox');
+      const pi = document.getElementById('pendingItems');
+      if (pendingNow.length > 0) {
+        pb.style.display = 'block';
+        pi.innerHTML = pendingNow.map(p => `<div class='pendingItem'>${p}</div>`).join('');
+      } else {
+        pb.style.display = 'none';
+      }
     }
 
-    generateSchedule();
-    render();
+    // Initialize and load data
+    async function init() {
+      await loadCheckedData();
+      generateSchedule();
+      render();
+    }
+
+    init();
   </script>
 </body>
 </html>
