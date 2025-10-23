@@ -102,9 +102,19 @@
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"></script>
+  <!-- Scripts CDN corregidos: Usamos versiones compatibles de Firebase v9 para evitar errores de módulos -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // Verificación inicial: Confirmar que Firebase se cargó correctamente
+    if (typeof firebase === 'undefined') {
+      console.error('Firebase no se cargó correctamente. Verifica la conexión a internet y los scripts CDN.');
+      document.getElementById('errorMessage').innerHTML = 'Error: Firebase no disponible. Verifica tu conexión.';
+      document.getElementById('errorMessage').style.display = 'block';
+    } else {
+      console.log('Firebase cargado correctamente:', firebase);
+    }
+
     // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC5nlgiGkmViycXzgo3wqbtYnU6-k4sMHc",
