@@ -4,6 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calendario de Medicación - Checklist</title>
+  <!-- Agregar favicon para la pestaña -->
+  <link rel="icon" type="image/png" href="src/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="src/favicon-16x16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="src/apple-touch-icon.png" />
+  <link rel="android-chrome-192x192" href="src/android-chrome-192x192.png" />
+  <link rel="android-chrome-512x512" href="src/android-chrome-512x512.png" />
+  <link rel="manifest" href="src/site.webmanifest" />
   <style>
     :root{
       --bg:#f9fafb;
@@ -102,11 +109,9 @@
     </div>
   </div>
 
-  <!-- Scripts CDN corregidos: Usamos versiones compatibles de Firebase v9 para evitar errores de módulos -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // Verificación inicial: Confirmar que Firebase se cargó correctamente
     if (typeof firebase === 'undefined') {
       console.error('Firebase no se cargó correctamente. Verifica la conexión a internet y los scripts CDN.');
       document.getElementById('errorMessage').innerHTML = 'Error: Firebase no disponible. Verifica tu conexión.';
@@ -115,7 +120,6 @@
       console.log('Firebase cargado correctamente:', firebase);
     }
 
-    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC5nlgiGkmViycXzgo3wqbtYnU6-k4sMHc",
       authDomain: "medicamentos-a6cc5.firebaseapp.com",
@@ -127,7 +131,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const userId = 'default_user'; // Replace with actual user ID if authentication is implemented
+    const userId = 'default_user';
 
     const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
@@ -168,7 +172,7 @@
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
         showError('Error al cargar los datos. Por favor, intenta de nuevo.');
-        throw error; // Rethrow to prevent further execution
+        throw error;
       }
     }
 
@@ -272,8 +276,10 @@
             cb.addEventListener('change', async () => {
               checked[ev.id] = cb.checked;
               if (cb.checked) {
-                checked[`last_${ev.medId}`] = ev.time.toISOString();
-                generateSchedule();
+                // Actualizar la última toma con la hora actual al marcar
+                const now = new Date();
+                checked[`last_${ev.medId}`] = now.toISOString();
+                generateSchedule(); // Regenerar el calendario con la nueva hora
               }
               await persist();
               render();
