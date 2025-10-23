@@ -5,21 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calendario de Medicación - Checklist</title>
   <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#60a5fa;--muted:#94a3b8;--ok:#10b981}
+    :root{
+      --bg:#f9fafb;
+      --card:#ffffff;
+      --accent:#2563eb;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+    }
     *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial; margin:0; background:linear-gradient(180deg,#071028 0%, #071633 100%); color:#e6eef8}
-    .wrap{max-width:980px;margin:28px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between}
-    h1{margin:0;font-size:20px}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
+    .wrap{max-width:900px;margin:30px auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px;color:#1e3a8a}
     p.lead{margin:6px 0 0;color:var(--muted)}
     .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-    button, .btn{background:var(--accent);color:#072033;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
-    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-    .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:18px}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background .2s}
+    button:hover{background:#1d4ed8}
+    .grid{display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
     .schedule{max-height:68vh;overflow:auto;padding-right:6px}
-    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.02)}
-    .time{width:88px;font-weight:600}
+    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e5e7eb;background:#f9fafb}
+    .time{width:80px;font-weight:600;color:#1d4ed8}
     .items{flex:1}
     .item{display:flex;gap:8px;align-items:center;margin-bottom:6px}
     .medname{font-size:14px}
@@ -29,11 +36,13 @@
     .rightpanel{position:sticky;top:18px}
     .meta{display:flex;flex-direction:column;gap:8px}
     .stats{display:flex;gap:8px;flex-wrap:wrap}
-    .stat{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;min-width:100px;text-align:center}
+    .stat{background:#f3f4f6;padding:8px;border-radius:8px;min-width:100px;text-align:center}
     .filters{display:flex;gap:8px;flex-wrap:wrap}
     .dayheader{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--accent)}
     .smallmuted{color:var(--muted);font-size:13px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0} .rightpanel{position:static}}
+    .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
+    .pendingItem{font-size:13px;color:var(--warn)}
+    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
   </style>
 </head>
 <body>
@@ -41,20 +50,17 @@
     <header>
       <div>
         <h1>Calendario de medicación — Checklist</h1>
-        <p class="lead">Inicia: <strong>23-10-2025 a las 20:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en tu navegador.</p>
+        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en tu navegador.</p>
       </div>
       <div class="controls">
-        <button id="toggleGroup" class="btn">Agrupar por hora</button>
-        <button id="clearAll" class="btn btn-outline">Limpiar marcas</button>
-        <button id="exportJson" class="btn btn-outline">Exportar JSON</button>
-        <button id="printBtn" class="btn">Imprimir</button>
+        <button id="toggleGroup">Agrupar por hora</button>
       </div>
     </header>
 
     <div class="grid">
       <section class="card">
         <div class="schedule" id="schedule"></div>
-        <footer class="small">Sugerencia: usa el botón "Agrupar por hora" para ver todas las medicaciones que coinciden en una misma casilla.</footer>
+        <footer class="small">Marca tus medicaciones al tomarlas. Se guardan automáticamente.</footer>
       </section>
 
       <aside class="rightpanel">
@@ -74,6 +80,10 @@
               <div class="smallmuted">Pendientes</div>
             </div>
           </div>
+          <div id="pendingBox" class="pendingList" style="display:none">
+            <div class="smallmuted"><strong>Pendientes recientes:</strong></div>
+            <div id="pendingItems"></div>
+          </div>
 
           <div style="margin-top:8px" class="smallmuted">Filtros</div>
           <div class="filters">
@@ -84,23 +94,15 @@
             <label><input type="checkbox" data-filter="ipratropio" checked /> Ipratropio</label>
             <label><input type="checkbox" data-filter="azitromicina" checked /> Azitromicina</label>
           </div>
-
-          <div style="margin-top:10px;display:flex;gap:8px">
-            <button id="expandAll" class="btn btn-outline">Expandir todo</button>
-            <button id="collapseAll" class="btn btn-outline">Colapsar</button>
-          </div>
         </div>
       </aside>
     </div>
   </div>
 
   <script>
-    // Configuración de inicio
-    const START = new Date(2025, 9, 23, 20, 0, 0); // meses 0-index -> 9 = octubre
-
-    // Medicamentos con frecuencia (en horas) y duración (en días)
+    const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
-      { id: 'gotas', name: 'Gotas', freq: 4, days: 7 }, // sin duración real; ponemos 7 días por si acaso
+      { id: 'gotas', name: 'Gotas', freq: 4, days: 7 },
       { id: 'loperamida', name: 'Loperamida 1 c/u', freq: 6, days: 4 },
       { id: 'ipratropio', name: 'Ipratropio 2 puff', freq: 6, days: 4 },
       { id: 'viadil', name: 'Viadil compuesto 35 gotas', freq: 8, days: 3 },
@@ -108,153 +110,106 @@
       { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6 }
     ];
 
-    // generar eventos entre START y END (usamos la máxima duración entre medicamentos)
     const maxDays = Math.max(...meds.map(m=>m.days));
     const END = new Date(START.getTime() + maxDays*24*60*60*1000);
 
-    // helper
-    function addHours(d,h){ return new Date(d.getTime() + h*60*60*1000); }
-    function formatDateTime(dt){
-      const pad=(n)=>n.toString().padStart(2,'0');
-      const dd=pad(dt.getDate());
-      const mm=pad(dt.getMonth()+1);
-      const yy=dt.getFullYear();
-      const hh=pad(dt.getHours());
-      const min=pad(dt.getMinutes());
-      return `${dd}-${mm}-${yy} ${hh}:${min}`;
-    }
-    function formatTime(dt){ const hh=dt.getHours().toString().padStart(2,'0'); const mm=dt.getMinutes().toString().padStart(2,'0'); return `${hh}:${mm}` }
+    function addHours(d,h){return new Date(d.getTime()+h*60*60*1000)}
+    function formatDateTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getDate())}-${p(dt.getMonth()+1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`}
+    function formatTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getHours())}:${p(dt.getMinutes())}`}
 
-    // generar lista de eventos
-    let events = [];
+    let events=[];
     meds.forEach(m=>{
-      let cur = new Date(START); // asumimos la primera dosis coincide con START
-      const last = new Date(START.getTime() + m.days*24*60*60*1000);
-      while(cur <= last){
-        // incluir solo si cur >= START y cur <= END
-        if(cur >= START && cur <= END){
-          events.push({
-            id: `${m.id}_${cur.getTime()}`,
-            medId: m.id,
-            medName: m.name,
-            time: new Date(cur)
-          });
+      let cur=new Date(START);
+      const last=new Date(START.getTime()+m.days*24*60*60*1000);
+      while(cur<=last){
+        if(cur>=START&&cur<=END){
+          events.push({id:`${m.id}_${cur.getTime()}`,medId:m.id,medName:m.name,time:new Date(cur)});
         }
-        cur = addHours(cur, m.freq);
+        cur=addHours(cur,m.freq);
       }
     });
 
-    // ordenar por fecha
-    events.sort((a,b)=>a.time - b.time);
+    events.sort((a,b)=>a.time-b.time);
 
-    // state
-    const STORAGE_KEY = 'med_calendar_checks_v1';
-    let checked = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    let groupByHour = true;
-    let filters = new Set(meds.map(m=>m.id));
+    const STORAGE_KEY='med_calendar_checks_v1';
+    let checked=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
+    let groupByHour=true;
+    let filters=new Set(meds.map(m=>m.id));
 
-    // render
-    const scheduleEl = document.getElementById('schedule');
+    const scheduleEl=document.getElementById('schedule');
     function render(){
-      scheduleEl.innerHTML = '';
-      // apply filters
-      const visibleEvents = events.filter(e=>filters.has(e.medId));
+      scheduleEl.innerHTML='';
+      const visibleEvents=events.filter(e=>filters.has(e.medId));
+      const byDay={};
+      visibleEvents.forEach(e=>{const key=e.time.toISOString().slice(0,10);if(!byDay[key])byDay[key]=[];byDay[key].push(e)});
 
-      // group by day and time
-      const byDay = {};
-      visibleEvents.forEach(e=>{
-        const dayKey = e.time.toISOString().slice(0,10);
-        if(!byDay[dayKey]) byDay[dayKey]=[];
-        byDay[dayKey].push(e);
-      });
+      let total=0,done=0;
+      const pendingNow=[];
+      const now=new Date();
 
-      let total = 0; let done = 0;
       Object.keys(byDay).sort().forEach(dayKey=>{
-        const dayEvents = byDay[dayKey];
-        const dayHeader = document.createElement('div');
-        dayHeader.className='dayheader';
-        const parts = dayKey.split('-'); // YYYY-MM-DD
-        const displayDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        dayHeader.textContent = displayDate;
-        scheduleEl.appendChild(dayHeader);
+        const dayEvents=byDay[dayKey];
+        const header=document.createElement('div');
+        header.className='dayheader';
+        const parts=dayKey.split('-');
+        header.textContent=`${parts[2]}-${parts[1]}-${parts[0]}`;
+        scheduleEl.appendChild(header);
 
         if(groupByHour){
-          // group by hh:mm
-          const byTime = {};
-          dayEvents.forEach(e=>{ const t=formatTime(e.time); if(!byTime[t]) byTime[t]=[]; byTime[t].push(e); });
+          const byTime={};
+          dayEvents.forEach(e=>{const t=formatTime(e.time);if(!byTime[t])byTime[t]=[];byTime[t].push(e)});
           Object.keys(byTime).sort().forEach(t=>{
-            const slot = document.createElement('div'); slot.className='slot';
-            const timeEl = document.createElement('div'); timeEl.className='time'; timeEl.textContent = t;
-            const itemsEl = document.createElement('div'); itemsEl.className='items';
-
+            const slot=document.createElement('div');slot.className='slot';
+            const timeEl=document.createElement('div');timeEl.className='time';timeEl.textContent=t;
+            const itemsEl=document.createElement('div');itemsEl.className='items';
             byTime[t].forEach(ev=>{
               total++;
-              const checkedState = !!checked[ev.id]; if(checkedState) done++;
-              const div = document.createElement('div'); div.className='item';
-              const label = document.createElement('label'); label.className='check';
-              const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = checkedState;
-              cb.addEventListener('change', ()=>{ checked[ev.id]=cb.checked; persist(); render(); });
-              const name = document.createElement('div'); name.className='medname'; name.textContent = ev.medName;
-              label.appendChild(cb); label.appendChild(name);
-              div.appendChild(label);
-              itemsEl.appendChild(div);
+              const chk=!!checked[ev.id];if(chk)done++;
+              if(!chk && ev.time<now){pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`)}
+              const div=document.createElement('div');div.className='item';
+              const label=document.createElement('label');label.className='check';
+              const cb=document.createElement('input');cb.type='checkbox';cb.checked=chk;
+              cb.addEventListener('change',()=>{checked[ev.id]=cb.checked;persist();render()});
+              const name=document.createElement('div');name.className='medname';name.textContent=ev.medName;
+              label.appendChild(cb);label.appendChild(name);
+              div.appendChild(label);itemsEl.appendChild(div);
             });
-
-            slot.appendChild(timeEl); slot.appendChild(itemsEl); scheduleEl.appendChild(slot);
-          });
-        } else {
-          // no agrupar: listar cada evento individualmente
-          dayEvents.forEach(ev=>{
-            total++;
-            const slot = document.createElement('div'); slot.className='slot';
-            const timeEl = document.createElement('div'); timeEl.className='time'; timeEl.textContent = formatTime(ev.time);
-            const itemsEl = document.createElement('div'); itemsEl.className='items';
-            const checkedState = !!checked[ev.id]; if(checkedState) done++;
-            const div = document.createElement('div'); div.className='item';
-            const label = document.createElement('label'); label.className='check';
-            const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = checkedState;
-            cb.addEventListener('change', ()=>{ checked[ev.id]=cb.checked; persist(); render(); });
-            const name = document.createElement('div'); name.className='medname'; name.textContent = ev.medName + ' — ' + formatDateTime(ev.time);
-            label.appendChild(cb); label.appendChild(name);
-            div.appendChild(label); itemsEl.appendChild(div);
-            slot.appendChild(timeEl); slot.appendChild(itemsEl); scheduleEl.appendChild(slot);
+            slot.appendChild(timeEl);slot.appendChild(itemsEl);scheduleEl.appendChild(slot);
           });
         }
       });
 
-      document.getElementById('totalEvents').textContent = total;
-      document.getElementById('doneCount').textContent = done;
-      document.getElementById('pendingCount').textContent = total - done;
+      document.getElementById('totalEvents').textContent=total;
+      document.getElementById('doneCount').textContent=done;
+      document.getElementById('pendingCount').textContent=total-done;
+
+      const pb=document.getElementById('pendingBox');
+      const pi=document.getElementById('pendingItems');
+      if(pendingNow.length>0){
+        pb.style.display='block';
+        pi.innerHTML=pendingNow.map(p=>`<div class='pendingItem'>${p}</div>`).join('');
+      } else {
+        pb.style.display='none';
+      }
     }
 
-    function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); }
+    function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(checked))}
 
-    // UI actions
-    document.getElementById('toggleGroup').addEventListener('click', ()=>{ groupByHour=!groupByHour; document.getElementById('toggleGroup').textContent = groupByHour? 'Agrupar por hora' : 'Ver individual'; render(); });
-    document.getElementById('clearAll').addEventListener('click', ()=>{ if(confirm('Limpiar todas las marcas?')){ checked={}; persist(); render(); }});
-    document.getElementById('exportJson').addEventListener('click', ()=>{
-      const data = { generatedAt: new Date().toISOString(), start: START.toISOString(), end: END.toISOString(), events: events.map(e=>({id:e.id, medId:e.medId, medName:e.medName, time: e.time.toISOString(), done: !!checked[e.id]})) };
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='med_calendar_export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    document.getElementById('toggleGroup').addEventListener('click',()=>{
+      groupByHour=!groupByHour;
+      document.getElementById('toggleGroup').textContent=groupByHour?'Agrupar por hora':'Ver individual';
+      render();
     });
-    document.getElementById('printBtn').addEventListener('click', ()=> window.print());
 
-    document.getElementById('expandAll').addEventListener('click', ()=>{ document.querySelectorAll('.slot').forEach(s=>s.style.maxHeight='none'); });
-    document.getElementById('collapseAll').addEventListener('click', ()=>{ document.querySelectorAll('.slot').forEach(s=>s.style.maxHeight=''); });
-
-    // filters
     document.querySelectorAll('[data-filter]').forEach(cb=>{
-      cb.addEventListener('change', ()=>{
-        const id = cb.getAttribute('data-filter');
-        if(cb.checked) filters.add(id); else filters.delete(id);
+      cb.addEventListener('change',()=>{
+        const id=cb.getAttribute('data-filter');
+        if(cb.checked)filters.add(id);else filters.delete(id);
         render();
       });
     });
 
-    // initial render
     render();
-
   </script>
 </body>
 </html>
