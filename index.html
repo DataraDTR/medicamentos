@@ -1,11 +1,9 @@
 <!doctype html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calendario de Medicación - Checklist</title>
-  <!-- Agregar favicon para la pestaña -->
   <link rel="icon" type="image/png" href="src/favicon-32x32.png" sizes="32x32" />
   <link rel="icon" type="image/png" href="src/favicon-16x16.png" sizes="16x16" />
   <link rel="apple-touch-icon" href="src/apple-touch-icon.png" />
@@ -13,231 +11,58 @@
   <link rel="android-chrome-512x512" href="src/android-chrome-512x512.png" />
   <link rel="manifest" href="src/site.webmanifest" />
   <style>
-    :root {
-      --bg: #f9fafb;
-      --card: #ffffff;
-      --accent: #2563eb;
-      --muted: #6b7280;
-      --ok: #10b981;
-      --warn: #f59e0b;
-      --error: #ef4444;
+    :root{
+      --bg:#f9fafb;
+      --card:#ffffff;
+      --accent:#2563eb;
+      --muted:#6b7280;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --error:#ef4444;
     }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
-      margin: 0;
-      background: var(--bg);
-      color: #111827
-    }
-
-    .wrap {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px
-    }
-
-    header {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap
-    }
-
-    h1 {
-      margin: 0;
-      font-size: 20px;
-      color: #1e3a8a
-    }
-
-    p.lead {
-      margin: 6px 0 0;
-      color: var(--muted)
-    }
-
-    .controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 14px
-    }
-
-    button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background .2s
-    }
-
-    button:hover {
-      background: #1d4ed8
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 260px;
-      gap: 18px;
-      margin-top: 18px
-    }
-
-    .card {
-      background: var(--card);
-      padding: 14px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08)
-    }
-
-    .schedule {
-      max-height: 68vh;
-      overflow: auto;
-      padding-right: 6px
-    }
-
-    .slot {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb
-    }
-
-    .time {
-      width: 80px;
-      font-weight: 600;
-      color: #1d4ed8
-    }
-
-    .items {
-      flex: 1
-    }
-
-    .item {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 6px
-    }
-
-    .medname {
-      font-size: 14px
-    }
-
-    label.check {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      cursor: pointer
-    }
-
-    input[type=checkbox] {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px
-    }
-
-    footer.small {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 12px
-    }
-
-    .rightpanel {
-      position: sticky;
-      top: 18px
-    }
-
-    .meta {
-      display: flex;
-      flex-direction: column;
-      gap: 8px
-    }
-
-    .stats {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .stat {
-      background: #f3f4f6;
-      padding: 8px;
-      border-radius: 8px;
-      min-width: 100px;
-      text-align: center
-    }
-
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .dayheader {
-      font-weight: 700;
-      margin-top: 12px;
-      margin-bottom: 6px;
-      color: var(--accent)
-    }
-
-    .smallmuted {
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .pendingList {
-      margin-top: 10px;
-      background: #fff7ed;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #fed7aa
-    }
-
-    .pendingItem {
-      font-size: 13px;
-      color: var(--warn)
-    }
-
-    .error-message {
-      background: #fee2e2;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--error);
-      color: var(--error);
-      font-size: 14px;
-      margin-bottom: 10px;
-      display: none
-    }
-
-    @media (max-width:900px) {
-      .grid {
-        grid-template-columns: 1fr;
-        margin: 0
-      }
-
-      .rightpanel {
-        position: static
-      }
-    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111827}
+    .wrap{max-width:900px;margin:30px auto;padding:20px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px;color:#1e3a8a}
+    p.lead{margin:6px 0 0;color:var(--muted)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    button{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background .2s}
+    button:hover{background:#1d4ed8}
+    .grid{display:grid;grid-template-columns:1fr 260px;gap:18px;margin-top:18px}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
+    .schedule{max-height:68vh;overflow:auto;padding-right:6px}
+    .slot{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:8px;margin-bottom:8px;border:1px solid #e5e7eb;background:#f9fafb}
+    .time{width:80px;font-weight:600;color:#1d4ed8}
+    .items{flex:1}
+    .item{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+    .medname{font-size:14px}
+    label.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+    input[type=checkbox]{width:18px;height:18px;border-radius:4px}
+    footer.small{color:var(--muted);font-size:13px;margin-top:12px}
+    .rightpanel{position:sticky;top:18px}
+    .meta{display:flex;flex-direction:column;gap:8px}
+    .stats{display:flex;gap:8px;flex-wrap:wrap}
+    .stat{background:#f3f4f6;padding:8px;border-radius:8px;min-width:100px;text-align:center}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .dayheader{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--accent)}
+    .smallmuted{color:var(--muted);font-size:13px}
+    .pendingList{margin-top:10px;background:#fff7ed;padding:10px;border-radius:8px;border:1px solid #fed7aa}
+    .pendingItem{font-size:13px;color:var(--warn)}
+    .error-message{background:#fee2e2;padding:10px;border-radius:8px;border:1px solid var(--error);color:var(--error);font-size:14px;margin-bottom:10px;display:none}
+    .tempEntry{background:#f9fafb;padding:8px;border-radius:6px;margin-bottom:6px;font-size:13px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+    .tempEntry .tempValue{font-weight:600;color:#1d4ed8}
+    .tempEntry .deleteBtn{background:#ef4444;color:white;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px}
+    .tempEntry .deleteBtn:hover{background:#dc2626}
+    @media (max-width:900px){.grid{grid-template-columns:1fr;margin:0}.rightpanel{position:static}}
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <header>
       <div>
         <h1>Calendario de medicación — Checklist</h1>
-        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los
-          cambios se guardan en Firebase.</p>
+        <p class="lead">Inicia: <strong>23-10-2025 a las 12:00</strong>. Marca las tomas cuando las completes. Los cambios se guardan en Firebase.</p>
       </div>
       <div class="controls">
         <button id="toggleGroup">Agrupar por hora</button>
@@ -283,6 +108,18 @@
             <label><input type="checkbox" data-filter="azitromicina" checked /> Azitromicina</label>
           </div>
         </div>
+
+        <div class="card meta" style="margin-top:14px">
+          <div class="smallmuted"><strong>Registro de Temperatura</strong></div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div style="flex:1;min-width:120px">
+              <label style="font-size:12px;color:var(--muted)">Temperatura (°C)</label>
+              <input type="number" id="tempInput" step="0.1" placeholder="36.5" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:6px;margin-top:4px" />
+            </div>
+            <button id="addTemp" style="padding:6px 12px;font-size:14px">Agregar</button>
+          </div>
+          <div id="tempList" style="margin-top:12px;max-height:200px;overflow-y:auto"></div>
+        </div>
       </aside>
     </div>
   </div>
@@ -291,10 +128,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
     if (typeof firebase === 'undefined') {
-      console.error('Firebase no se cargó correctamente. Verifica la conexión a internet y los scripts CDN.');
       document.getElementById('errorMessage').innerHTML = 'Error: Firebase no disponible. Verifica tu conexión.';
       document.getElementById('errorMessage').style.display = 'block';
-    } else {
     }
 
     const firebaseConfig = {
@@ -322,6 +157,7 @@
 
     let checked = {};
     let events = [];
+    let temperatures = [];
 
     function showError(message) {
       const errorEl = document.getElementById('errorMessage');
@@ -339,13 +175,15 @@
       try {
         const doc = await db.collection('medication_checks').doc(userId).get();
         if (doc.exists) {
-          checked = doc.data().checks || {};
+          const data = doc.data();
+          checked = data.checks || {};
+          temperatures = data.temperatures || [];
         } else {
           checked = {};
+          temperatures = [];
         }
         clearError();
       } catch (error) {
-        console.error('Error loading data from Firestore:', error);
         showError('Error al cargar los datos. Por favor, intenta de nuevo.');
         throw error;
       }
@@ -355,11 +193,11 @@
       try {
         await db.collection('medication_checks').doc(userId).set({
           checks: checked,
+          temperatures: temperatures,
           lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         });
         clearError();
       } catch (error) {
-        console.error('Error saving data to Firestore:', error);
         showError('Error al guardar los datos. Por favor, intenta de nuevo.');
       }
     }
@@ -381,7 +219,7 @@
     function generateSchedule() {
       events = [];
       const now = new Date();
-      const today = new Date(2025, 9, 23); // 23-10-2025
+      const today = new Date(2025, 9, 23);
       const isToday = now.toDateString() === today.toDateString();
       
       meds.forEach(m => {
@@ -390,10 +228,8 @@
         let cur = new Date(initialStart.getTime());
         const end = new Date(START.getTime() + m.days * 24 * 60 * 60 * 1000);
         
-        // Solo para hoy: verificar si necesitamos reprogramar
         if (isToday && checked[`skipped_${m.id}`]) {
           const skippedTime = new Date(checked[`skipped_${m.id}`]);
-          // Si se saltó una toma hoy, empezar desde la siguiente disponible
           cur = new Date(skippedTime.getTime());
           cur = addHours(cur, m.freq);
         }
@@ -460,12 +296,6 @@
             cb.checked = chk;
             cb.addEventListener('change', async () => {
               checked[ev.id] = cb.checked;
-              if (cb.checked) {
-                // Actualizar la última toma con la hora actual al marcar
-                const now = new Date();
-                checked[`last_${ev.medId}`] = now.toISOString();
-                generateSchedule(); // Regenerar el calendario con la nueva hora
-              }
               await persist();
               render();
             });
@@ -496,11 +326,97 @@
       }
     }
 
+    function renderTemperatures() {
+      const tempList = document.getElementById('tempList');
+      if (temperatures.length === 0) {
+        tempList.innerHTML = '<div class="smallmuted" style="padding:8px">No hay registros aún</div>';
+        return;
+      }
+      
+      const sorted = [...temperatures].sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+      
+      tempList.innerHTML = sorted.map((t, idx) => {
+        const dt = new Date(t.datetime);
+        const realIdx = temperatures.findIndex(temp => temp.datetime === t.datetime && temp.value === t.value);
+        return `
+          <div class="tempEntry">
+            <div>
+              <div>${formatDateTime(dt)}</div>
+              <div class="tempValue">${t.value}°C</div>
+            </div>
+            <button class="deleteBtn" onclick="deleteTemp(${realIdx})">Eliminar</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.deleteTemp = async function(index) {
+      temperatures.splice(index, 1);
+      await persist();
+      renderTemperatures();
+    }
+
+    async function addTemperature() {
+      const input = document.getElementById('tempInput');
+      const value = parseFloat(input.value);
+      
+      if (isNaN(value) || value < 30 || value > 45) {
+        alert('Por favor ingresa una temperatura válida (30-45°C)');
+        return;
+      }
+      
+      const now = new Date();
+      temperatures.push({
+        datetime: now.toISOString(),
+        value: value
+      });
+      
+      input.value = '';
+      await persist();
+      renderTemperatures();
+    }
+
+    function checkAndReschedule() {
+      const now = new Date();
+      const today = new Date(2025, 9, 23);
+      const isToday = now.toDateString() === today.toDateString();
+      
+      if (!isToday) return;
+      
+      let needsUpdate = false;
+      
+      events.forEach(ev => {
+        const timeDiff = now - ev.time;
+        const oneHour = 60 * 60 * 1000;
+        
+        if (ev.medId === 'gotas') return;
+        
+        if (timeDiff > oneHour && !checked[ev.id] && !checked[`skipped_${ev.medId}`]) {
+          checked[`skipped_${ev.medId}`] = ev.time.toISOString();
+          needsUpdate = true;
+        }
+      });
+      
+      if (needsUpdate) {
+        persist();
+        generateSchedule();
+        render();
+      }
+    }
+
     async function init() {
       try {
         await loadCheckedData();
         generateSchedule();
         render();
+        renderTemperatures();
+        
+        setInterval(checkAndReschedule, 60000);
+        
+        document.getElementById('addTemp').addEventListener('click', addTemperature);
+        document.getElementById('tempInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') addTemperature();
+        });
       } catch (error) {
         console.error('Initialization failed:', error);
       }
@@ -509,5 +425,4 @@
     init();
   </script>
 </body>
-
 </html>
