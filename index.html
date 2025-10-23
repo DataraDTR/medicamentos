@@ -103,112 +103,81 @@
     const START = new Date(2025, 9, 23, 12, 0, 0);
     const meds = [
       { id: 'gotas', name: 'Gotas', freq: 4, days: 7 },
-      { id: 'loperamida', name: 'Loperamida 1 c/u', freq: 6, days: 4 },
+      { id: 'loperamida', name: 'Loperamida 1 c/u', freq: 6, days: 4, offset: 4 },
       { id: 'ipratropio', name: 'Ipratropio 2 puff', freq: 6, days: 4 },
       { id: 'viadil', name: 'Viadil compuesto 35 gotas', freq: 8, days: 3 },
       { id: 'paracetamol', name: 'Paracetamol 1 g', freq: 8, days: 4 },
-      { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6 }
+      { id: 'azitromicina', name: 'Azitromicina 1/día', freq: 24, days: 6, offset: 4 }
     ];
 
-    const maxDays = Math.max(...meds.map(m=>m.days));
-    const END = new Date(START.getTime() + maxDays*24*60*60*1000);
+    const STORAGE_KEY='med_calendar_checks_v2';
 
     function addHours(d,h){return new Date(d.getTime()+h*60*60*1000)}
     function formatDateTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getDate())}-${p(dt.getMonth()+1)}-${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`}
     function formatTime(dt){const p=n=>n.toString().padStart(2,'0');return `${p(dt.getHours())}:${p(dt.getMinutes())}`}
 
-    let events=[];
-    meds.forEach(m=>{
-      let cur=new Date(START);
-      const last=new Date(START.getTime()+m.days*24*60*60*1000);
-      while(cur<=last){
-        if(cur>=START&&cur<=END){
-          events.push({id:`${m.id}_${cur.getTime()}`,medId:m.id,medName:m.name,time:new Date(cur)});
-        }
-        cur=addHours(cur,m.freq);
-      }
-    });
-
-    events.sort((a,b)=>a.time-b.time);
-
-    const STORAGE_KEY='med_calendar_checks_v1';
     let checked=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-    let groupByHour=true;
-    let filters=new Set(meds.map(m=>m.id));
+    let events=[];
 
-    const scheduleEl=document.getElementById('schedule');
-    function render(){
-      scheduleEl.innerHTML='';
-      const visibleEvents=events.filter(e=>filters.has(e.medId));
-      const byDay={};
-      visibleEvents.forEach(e=>{const key=e.time.toISOString().slice(0,10);if(!byDay[key])byDay[key]=[];byDay[key].push(e)});
-
-      let total=0,done=0;
-      const pendingNow=[];
-      const now=new Date();
-
-      Object.keys(byDay).sort().forEach(dayKey=>{
-        const dayEvents=byDay[dayKey];
-        const header=document.createElement('div');
-        header.className='dayheader';
-        const parts=dayKey.split('-');
-        header.textContent=`${parts[2]}-${parts[1]}-${parts[0]}`;
-        scheduleEl.appendChild(header);
-
-        if(groupByHour){
-          const byTime={};
-          dayEvents.forEach(e=>{const t=formatTime(e.time);if(!byTime[t])byTime[t]=[];byTime[t].push(e)});
-          Object.keys(byTime).sort().forEach(t=>{
-            const slot=document.createElement('div');slot.className='slot';
-            const timeEl=document.createElement('div');timeEl.className='time';timeEl.textContent=t;
-            const itemsEl=document.createElement('div');itemsEl.className='items';
-            byTime[t].forEach(ev=>{
-              total++;
-              const chk=!!checked[ev.id];if(chk)done++;
-              if(!chk && ev.time<now){pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`)}
-              const div=document.createElement('div');div.className='item';
-              const label=document.createElement('label');label.className='check';
-              const cb=document.createElement('input');cb.type='checkbox';cb.checked=chk;
-              cb.addEventListener('change',()=>{checked[ev.id]=cb.checked;persist();render()});
-              const name=document.createElement('div');name.className='medname';name.textContent=ev.medName;
-              label.appendChild(cb);label.appendChild(name);
-              div.appendChild(label);itemsEl.appendChild(div);
-            });
-            slot.appendChild(timeEl);slot.appendChild(itemsEl);scheduleEl.appendChild(slot);
-          });
+    function generateSchedule(){
+      events=[];
+      meds.forEach(m=>{
+        let startOffset=(m.offset||0)*60*60*1000;
+        let lastTaken=checked[`last_${m.id}`]?new Date(checked[`last_${m.id}`]):new Date(START.getTime()+startOffset);
+        let cur=new Date(lastTaken.getTime());
+        const end=new Date(START.getTime()+m.days*24*60*60*1000);
+        while(cur<=end){
+          events.push({id:`${m.id}_${cur.getTime()}`,medId:m.id,medName:m.name,time:new Date(cur)});
+          cur=addHours(cur,m.freq);
         }
       });
-
-      document.getElementById('totalEvents').textContent=total;
-      document.getElementById('doneCount').textContent=done;
-      document.getElementById('pendingCount').textContent=total-done;
-
-      const pb=document.getElementById('pendingBox');
-      const pi=document.getElementById('pendingItems');
-      if(pendingNow.length>0){
-        pb.style.display='block';
-        pi.innerHTML=pendingNow.map(p=>`<div class='pendingItem'>${p}</div>`).join('');
-      } else {
-        pb.style.display='none';
-      }
+      events.sort((a,b)=>a.time-b.time);
     }
 
     function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(checked))}
 
-    document.getElementById('toggleGroup').addEventListener('click',()=>{
-      groupByHour=!groupByHour;
-      document.getElementById('toggleGroup').textContent=groupByHour?'Agrupar por hora':'Ver individual';
-      render();
-    });
+    function render(){
+      const scheduleEl=document.getElementById('schedule');
+      scheduleEl.innerHTML='';
+      const now=new Date();
+      const byDay={};
+      events.forEach(e=>{const k=e.time.toISOString().slice(0,10);if(!byDay[k])byDay[k]=[];byDay[k].push(e)});
 
-    document.querySelectorAll('[data-filter]').forEach(cb=>{
-      cb.addEventListener('change',()=>{
-        const id=cb.getAttribute('data-filter');
-        if(cb.checked)filters.add(id);else filters.delete(id);
-        render();
+      let total=0,done=0;const pendingNow=[];
+      Object.keys(byDay).sort().forEach(day=>{
+        const header=document.createElement('div');header.className='dayheader';
+        const p=day.split('-');header.textContent=`${p[2]}-${p[1]}-${p[0]}`;scheduleEl.appendChild(header);
+        const byTime={};byDay[day].forEach(e=>{const t=formatTime(e.time);if(!byTime[t])byTime[t]=[];byTime[t].push(e)});
+        Object.keys(byTime).sort().forEach(t=>{
+          const slot=document.createElement('div');slot.className='slot';
+          const timeEl=document.createElement('div');timeEl.className='time';timeEl.textContent=t;
+          const itemsEl=document.createElement('div');itemsEl.className='items';
+          byTime[t].forEach(ev=>{
+            total++;const chk=!!checked[ev.id];if(chk)done++;if(!chk && ev.time<now){pendingNow.push(`${formatDateTime(ev.time)} → ${ev.medName}`)}
+            const div=document.createElement('div');div.className='item';
+            const label=document.createElement('label');label.className='check';
+            const cb=document.createElement('input');cb.type='checkbox';cb.checked=chk;
+            cb.addEventListener('change',()=>{
+              checked[ev.id]=cb.checked;
+              if(cb.checked){checked[`last_${ev.medId}`]=ev.time.toISOString();generateSchedule();}
+              persist();render();
+            });
+            const name=document.createElement('div');name.className='medname';name.textContent=ev.medName;
+            label.appendChild(cb);label.appendChild(name);div.appendChild(label);itemsEl.appendChild(div);
+          });
+          slot.appendChild(timeEl);slot.appendChild(itemsEl);scheduleEl.appendChild(slot);
+        });
       });
-    });
+      document.getElementById('totalEvents').textContent=total;
+      document.getElementById('doneCount').textContent=done;
+      document.getElementById('pendingCount').textContent=total-done;
 
+      const pb=document.getElementById('pendingBox');const pi=document.getElementById('pendingItems');
+      if(pendingNow.length>0){pb.style.display='block';pi.innerHTML=pendingNow.map(p=>`<div class='pendingItem'>${p}</div>`).join('');}
+      else{pb.style.display='none';}
+    }
+
+    generateSchedule();
     render();
   </script>
 </body>
